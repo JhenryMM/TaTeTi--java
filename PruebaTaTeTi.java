@@ -1,60 +1,26 @@
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Scanner;
-import java.util.Date;
+
 public class PruebaTaTeTi {
     
     public static void main(String[] args) {
-
-    conectaDB d = new conectaDB("localhost:3306/tateti","root","admin1");
-    System.out.println("1.jugar\n2.Cambiar idioma\n3.ver estadisticas\n4.salir");
-    Scanner l = new Scanner(System.in);
-    int op1= l.nextInt();
-    menu(op1,d,l);
-    //faltaria agregar idioma
+    imprimirTablaIdiomas();
     }
 
-    public static void menu(int op1, conectaDB d,Scanner l) {
-        String gano="perdio";
+    public static void imprimirTablaIdiomas(){
+       while(true){
+           System.out.println("Seleccione su idioma\n1.Ingles\n2.Español\n3.Portugues\n4.Salir");
+           Scanner dato = new Scanner(System.in);
+           int idioma= dato.nextInt();
+           if (idioma>0 && idioma< 4) {
+               TaTeTi jugar = new TaTeTi(idioma);
+               jugar.menu(jugar);
+           } else if (idioma == 4){
+               break;
+           } else {
+               System.out.println("Solo puede ingresar numeros del 1 al 4");
+           }
 
-        switch(op1){
-            case 1: 
-            Date inicio= new Date();
-            DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-            TaTeTi jugar= new TaTeTi();
-            jugar.crearYllenarTablero();
-            jugar.mostrarTablero();
-            jugar.jugar();
-
-            if(jugar.haGanado('X')){
-                gano= "gano";
-            }else if(jugar.haGanado('0')){
-                gano= "perdio";
-            }else{
-                gano= "empato";
-            }
-            
-            Date fin= new Date();
-          
-            d.GuardaPartida(format, inicio, fin, gano);
-            break;
-
-            case 2: 
-          
-            d.imprimirTablaIdiomas();
-            int idioma= l.nextInt();
-            
-            break;
-            case 3: 
-            d.imprimirEstadisticas();
-
-            break;
-
-            default:
-            
-            break;
-    }
+       }
     }
 
 }

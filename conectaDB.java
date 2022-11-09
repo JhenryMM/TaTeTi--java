@@ -18,40 +18,32 @@ public class conectaDB {
         this.usuario=usuario;
         this.password=password;
     }
-    
-    public void imprimirTablaIdiomas(){
-        System.out.println("Seleccione su idioma");
-        try {
-////            //Crear conexion
-////            Connection miConexion= DriverManager.getConnection("jdbc:mysql://localhost:3306"+this.conexion,this.usuario,this.password);
-////            Statement miStatement= miConexion.createStatement();
-////            //obtener registros
-////            ResultSet miResultSet = miStatement.executeQuery("SELECT * FROM idioma" );
-////            //update registros
-////            //miStatement.exceuteUpdate(instruccionSQL);
-//                while(miResultSet.next()){
-//                    System.out.println(miResultSet.getString("idIdioma")+" "+ miResultSet.getString("descripcion"));
-//                }
-        }catch(Exception e){
-            System.out.println(e.getMessage());
-        }
+
+    public String getConexion() {
+        return conexion;
     }
-    
+
+    public String getUsuario() {
+        return usuario;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
     public void imprimirEstadisticas(){
         System.out.println("Estas son tus Estadisticas");
         try {
 
 //            //Crear conexion
-//            Connection miConexion= DriverManager.getConnection("jdbc:mysql://"+this.conexion,this.usuario,this.password);
-//            Statement miStatement= miConexion.createStatement();
+            Connection miConexion= DriverManager.getConnection("jdbc:mysql://"+this.conexion,this.usuario,this.password);
+            Statement miStatement= miConexion.createStatement();
 //            //obtener registros
-//            ResultSet miResultSet = miStatement.executeQuery("SELECT * FROM registrodepartida" );
-//            //update registros
-//            //miStatement.exceuteUpdate(instruccionSQL);
-//            while(miResultSet.next()){
-//
-//                System.out.println("La partida inicio "+miResultSet.getString("inicioDePartida")+ " y finalizo el "+miResultSet.getString("FinDePartida")+" y el jugador "+ miResultSet.getString("nombreJugador")+" "+miResultSet.getString("Gano")+" contra la maquina");
-//            }
+            ResultSet miResultSet = miStatement.executeQuery("SELECT * FROM registrodepartida rp INNER JOIN jugador j ON rp.idjugador = j.idjugador " );
+
+            while(miResultSet.next()){
+                System.out.println("La partida inicio "+miResultSet.getString("inicioDePartida")+ " y finalizo el "+miResultSet.getString("FinDePartida")+" "+ miResultSet.getString("nombre") +" "+ miResultSet.getString("Gano")+" contra la maquina");
+            }
 
         }catch(Exception e){
             System.out.println(e.getMessage());
