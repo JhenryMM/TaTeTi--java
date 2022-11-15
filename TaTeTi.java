@@ -9,26 +9,48 @@ public class TaTeTi {
     private final char J1 = 'X';
     private final char J2 = '0';
     private char jugador = J1;
-    private conectaDB d = new conectaDB("localhost:3306/tateti", "root", "admin1");
+    private conectaDB d = new conectaDB("localhost:3306/tateti", "root", "");
     ResultSet miResulSet;
     Statement miStatement;
     int idioma;
+    String nombreJ;
 
     public TaTeTi(int idioma) {
         this.idioma = idioma;
     }
 
+
+    public void menuChico(){
+        try {
+            Connection miConexion = DriverManager.getConnection("jdbc:mysql://" + d.getConexion(), d.getUsuario(), d.getPassword());
+        miStatement = miConexion.createStatement();
+        miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where (id_Mensaje=8 OR id_Mensaje=9 OR id_Mensaje=10) and  id_idioma =" + idioma + " ");
+        int contador = 1;
+        System.out.println("  ");
+        while (miResulSet.next()) {
+            System.out.println(contador + "." + miResulSet.getString("descripcion"));
+            contador++;
+        }
+        } catch (Exception e) {
+           System.out.println(e);
+        }
+    }
     public void menu(TaTeTi jugar) {
         try {
             Connection miConexion = DriverManager.getConnection("jdbc:mysql://" + d.getConexion(), d.getUsuario(), d.getPassword());
             miStatement = miConexion.createStatement();
-            miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where (id_Mensaje=8 OR id_Mensaje=9 OR id_Mensaje=10) and  id_idioma =" + idioma + " ");
-            int contador = 1;
-            while (miResulSet.next()) {
-                System.out.println(contador + "." + miResulSet.getString("descripcion"));
-                contador++;
+            //pide nombre al jugador 
+            miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=2 and id_idioma = " + idioma + " ");
+            while(miResulSet.next()){
+                System.out.println(miResulSet.getString("descripcion"));
             }
-            String gano;
+            Scanner n = new Scanner(System.in);
+            String nombreJugador=n.nextLine();
+            nombreJ=nombreJugador;
+            //opciones: jugar, ver stas, salir
+            menuChico();
+           
+            int gano;
             boolean condicion = true;
             while (condicion) {
                 Scanner l = new Scanner(System.in);
@@ -41,24 +63,25 @@ public class TaTeTi {
                     jugar.jugar();
 
                     if (jugar.haGanado('X')) {
-                        gano = "gano";
+                        gano = 1;
                     } else if (jugar.haGanado('0')) {
-                        gano = "perdio";
+                        gano = 0;
                     } else {
-                        gano = "empato";
+                        gano = 2;
                     }
 
                     Date fin = new Date();
 
-                    d.GuardaPartida(format, inicio, fin, gano);
+                    d.GuardaPartida(format, inicio, fin, gano, nombreJugador,idioma);
                 }
                 if (op == 2) {
-                    d.imprimirEstadisticas();
+                    d.imprimirEstadisticas(idioma);
                 }
                 if (op == 3) {
                     condicion = false;
                 } else {
-                    miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=14 and id_idioma = " + idioma + " ");
+                    menuChico();
+                    //miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=14 and id_idioma = " + idioma + " ");
                     while (miResulSet.next()) {
                         System.out.println(miResulSet.getString("descripcion"));
                     }
@@ -129,7 +152,7 @@ public class TaTeTi {
                 System.out.println(" ");
                 movimientoComputadora();
                 mostrarTablero();
-                if (haGanado(jugador) || Empate()) {
+                if (haGanado(jugador) || Empate()) {  
                     gano = false;
                     break;
                 }
