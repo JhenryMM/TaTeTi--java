@@ -24,7 +24,7 @@ public class TaTeTi {
         try {
             Connection miConexion = DriverManager.getConnection("jdbc:mysql://" + d.getConexion(), d.getUsuario(), d.getPassword());
         miStatement = miConexion.createStatement();
-        miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where (id_Mensaje=8 OR id_Mensaje=9 OR id_Mensaje=10) and  id_idioma =" + idioma + " ");
+        miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where (id_Mensaje=8 OR id_Mensaje=9 OR id_Mensaje=10 OR id_Mensaje=28) and  id_idioma =" + idioma + " ");
         int contador = 1;
         System.out.println("  ");
         while (miResulSet.next()) {
@@ -75,9 +75,12 @@ public class TaTeTi {
                     d.GuardaPartida(format, inicio, fin, gano, nombreJugador,idioma);
                 }
                 if (op == 2) {
-                    d.imprimirEstadisticas(idioma);
+                    d.imprimirEstadisticas(idioma,null);
                 }
                 if (op == 3) {
+                    d.imprimirEstadisticas(idioma,nombreJ);
+                } if(op==4){
+                    
                     condicion = false;
                 } else {
                     menuChico();
