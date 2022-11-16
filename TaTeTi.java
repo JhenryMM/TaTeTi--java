@@ -242,7 +242,7 @@ public class TaTeTi {
                 }
             }
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            System.out.println("Ha ocurrido un error");
         }
     }
 

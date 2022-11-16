@@ -3,7 +3,11 @@ import java.util.Scanner;
 public class PruebaTaTeTi {
 
     public static void main(String[] args) {
+       try {
         imprimirTablaIdiomas();
+       } catch (Exception e) {
+        System.out.println("Se ha ingresado un valor incorrecto\nCerrando...");
+       }
     }
 
     public static void imprimirTablaIdiomas() {
@@ -17,7 +21,7 @@ public class PruebaTaTeTi {
             } else if (idioma == 4) {
                 break;
             } else {
-                System.out.println("Solo puede ingresar numeros del 1 al 4");
+                System.out.println("Solo puede ingresar numeros del 1 al 4\n");
             }
 
         }
