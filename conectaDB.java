@@ -9,9 +9,9 @@ import java.sql.ResultSet;
 
 public class conectaDB {
     private String conexion;
-
     private String usuario;
     private String password;
+
 
     public conectaDB(String conexion, String usuario, String password) {
         this.conexion = conexion;
@@ -31,162 +31,100 @@ public class conectaDB {
         return password;
     }
 
-  
+
     public void imprimirEstadisticas(int idioma, String name) {
         try {
-           
-            //Crear conexion
-              Connection miConexion = DriverManager.getConnection("jdbc:mysql://" + this.conexion, this.usuario, this.password);
-              Statement miStatement = miConexion.createStatement();
 
+            //Crear conexion
+            Connection miConexion = DriverManager.getConnection("jdbc:mysql://" + this.conexion, this.usuario, this.password);
+            Statement miStatement = miConexion.createStatement();
+            ResultSet miResultSet;
             //mensaje inicio partida
-            String inicio= " ";
-            ResultSet miResultSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=19 and id_idioma =" + idioma + "");
-            while (miResultSet.next()) {
-              inicio=miResultSet.getString("descripcion");
-            }
+            String inicio = mensajexIdioma(idioma,19);
 
             //mensaje fin partida
-            String fin= " ";
-            miResultSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=20 and id_idioma =" + idioma + "");
-            while (miResultSet.next()) {
-              fin=miResultSet.getString("descripcion");
-            }
-            
+            String fin = mensajexIdioma(idioma, 20);
+
             //mensaje Contra la maquina 
-            String contra= " ";
-            miResultSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=21 and id_idioma =" + idioma + "");
-            while (miResultSet.next()) {
-              contra=miResultSet.getString("descripcion");
-            }
-              
-       if(name==null){
-            //obtener registros
-  
-            //mensaje estadisticas
-            miResultSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=30 and id_idioma =" + idioma + "");
-            while (miResultSet.next()) {
-              System.out.println(miResultSet.getString("descripcion"));
-            }
+            String contra = mensajexIdioma(idioma,21);
 
-           miResultSet = miStatement.executeQuery("SELECT * FROM registrodepartida rp INNER JOIN jugador j ON rp.idjugador = j.idjugador");
-  
-          while (miResultSet.next()) {
-            //para el mensaje gano o perdio o empato
-            String resultado =" ";
-            if (miResultSet.getInt("gano")==1){
-                //gano
-                Connection miC = DriverManager.getConnection("jdbc:mysql://" + this.conexion, this.usuario, this.password);
-                Statement miS = miC.createStatement();
-                ResultSet miR = miS.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=25 and id_idioma =" + idioma + "");
-            while (miR.next()) {
-                resultado=miR.getString("descripcion");
-            }
-                        
-            }else if(miResultSet.getInt("gano")==0){
-                //perdio
-                Connection miC = DriverManager.getConnection("jdbc:mysql://" + this.conexion, this.usuario, this.password);
-                Statement miS = miC.createStatement();
-                ResultSet miR = miS.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=26 and id_idioma =" + idioma + "");
-                while (miR.next()) {
-                    resultado=miR.getString("descripcion");
+            // resultado de la partida
+            String resultado = " ";
+            if (name == null) {
+                //obtener registros
+
+                //mensaje estadisticas
+                miResultSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=30 and id_idioma =' "+ idioma + " ' ");
+                while (miResultSet.next()) {
+                    System.out.println(miResultSet.getString("descripcion"));
                 }
-                    
-                 
-            }else{
-                //empate
-                Connection miC = DriverManager.getConnection("jdbc:mysql://" + this.conexion, this.usuario, this.password);
-                Statement miS = miC.createStatement();
-                ResultSet miR = miS.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=27 and id_idioma =" + idioma + "");
-                      while (miR.next()) {
-                        resultado=miR.getString("descripcion");
-                    }
-            } 
-           
-              System.out.println(inicio+" "+miResultSet.getString("inicioDePartida")  +" "+fin+" " +miResultSet.getString("FinDePartida") + " " + miResultSet.getString("nombre") + " " + resultado+" "+contra);
-              
-          }
-  
-          
-       }else{
-            //mensaje estadisticas
 
-            Connection miCo = DriverManager.getConnection("jdbc:mysql://" + this.conexion, this.usuario, this.password);
-            Statement miSta = miCo.createStatement();
-            ResultSet miRe = miSta.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=18 and id_idioma =" + idioma + "");
-            
-            while (miRe.next()) {
-            System.out.println(miResultSet.getString("descripcion"));
-            }
+                miResultSet = miStatement.executeQuery("SELECT * FROM registrodepartida rp INNER JOIN jugador j ON rp.idjugador = j.idjugador");
 
-            miRe = miStatement.executeQuery("SELECT * FROM registrodepartida rp INNER JOIN jugador j ON rp.idjugador = j.idjugador where j.nombre ="+ name +"");
-  
-        
-            while (miRe.next()) {
                 while (miResultSet.next()) {
                     //para el mensaje gano o perdio o empato
-                    String resultado =" ";
-                    if (miResultSet.getInt("gano")==1){
+
+                    if (miResultSet.getInt("gano") == 1) {
                         //gano
-                        Connection miC = DriverManager.getConnection("jdbc:mysql://" + this.conexion, this.usuario, this.password);
-                        Statement miS = miC.createStatement();
-                        ResultSet miR = miS.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=25 and id_idioma =" + idioma + "");
-                    while (miR.next()) {
-                        resultado=miR.getString("descripcion");
-                    }
-                                
-                    }else if(miResultSet.getInt("gano")==0){
+                        resultado = mensajexIdioma(idioma, 25);
+
+                    } else if (miResultSet.getInt("gano") == 0) {
                         //perdio
-                        Connection miC = DriverManager.getConnection("jdbc:mysql://" + this.conexion, this.usuario, this.password);
-                        Statement miS = miC.createStatement();
-                        ResultSet miR = miS.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=26 and id_idioma =" + idioma + "");
-                        while (miR.next()) {
-                            resultado=miR.getString("descripcion");
-                        }
-                            
-                         
-                    }else{
+                        resultado = mensajexIdioma(idioma, 26);
+
+                    } else {
                         //empate
-                        Connection miC = DriverManager.getConnection("jdbc:mysql://" + this.conexion, this.usuario, this.password);
-                        Statement miS = miC.createStatement();
-                        ResultSet miR = miS.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=27 and id_idioma =" + idioma + "");
-                              while (miR.next()) {
-                                resultado=miR.getString("descripcion");
-                            }
-                    } 
+                        resultado = mensajexIdioma(idioma, 27);
+                    }
 
-                System.out.println(inicio+" "+miResultSet.getString("inicioDePartida")  +" "+fin+" " +miResultSet.getString("FinDePartida") + " " + miResultSet.getString("nombre") + " " + resultado+" "+contra);
-                
+                    System.out.println(inicio + " " + miResultSet.getString("inicioDePartida") + " " + fin + " " + miResultSet.getString("FinDePartida") + " " + miResultSet.getString("nombre") + " " + resultado + " " + contra);
+
+                }
+
+
+            } else {
+                //mensaje estadisticas
+                System.out.println(mensajexIdioma(idioma, 18));
+
+                Connection miCon = DriverManager.getConnection("jdbc:mysql://" + this.conexion, this.usuario, this.password);
+                Statement miState = miCon.createStatement();
+                miState.getConnection();
+                miResultSet = miState.executeQuery("SELECT * FROM registrodepartida rp INNER JOIN jugador j ON rp.idjugador = j.idjugador WHERE j.nombre = '"+ name + "' ");
+
+                while (miResultSet.next()) {
+
+                    if (miResultSet.getInt("gano") == 1) {
+                        //gano
+                        resultado = mensajexIdioma(idioma, 25);
+
+                    } else if (miResultSet.getInt("gano") == 0) {
+                        //perdio
+                        resultado = mensajexIdioma(idioma, 26);
+
+                    } else {
+                        //empate
+                        resultado = mensajexIdioma(idioma, 27);
+                    }
+                    System.out.println(inicio + " " + miResultSet.getString("inicioDePartida") + " " + fin + " " + miResultSet.getString("FinDePartida") + " " + miResultSet.getString("nombre") + " " + resultado + " " + contra);
+                }
             }
-
-       }
-    } }catch (Exception e) {
-        System.out.println(e.getMessage());
-    }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public void GuardaPartida(DateFormat date, Date inicio, Date fin, int ganador, String nombre, int idioma) {
-       // System.out.println("Estas guardando tus partidas...");
-       
-
         try {
             //Crear conexion
             Connection miConexion = DriverManager.getConnection("jdbc:mysql://" + this.conexion, this.usuario, this.password);
-
             Statement miStatement = miConexion.createStatement();
 
-            ResultSet miResultSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=22 and id_idioma = " + idioma + " ");
-
-
-            while (miResultSet.next()) {
-                System.out.println(miResultSet.getString("descripcion"));
-            }
-
-            String instruccionSQL = "INSERT INTO jugador(nombre) VALUES ('" + nombre + "')";
-            miStatement.executeUpdate(instruccionSQL);
+            System.out.println(mensajexIdioma(idioma,22));
 
             PreparedStatement ps = miConexion.prepareStatement("SELECT*FROM jugador WHERE nombre = '" + nombre + "'");
             ResultSet jugador = ps.executeQuery();
+
             int idjugador = 0;
 
             while (jugador.next()) {
@@ -194,24 +132,33 @@ public class conectaDB {
             }
 
             int dato = idjugador;
+
             String instruccionSQLB = "INSERT INTO registrodepartida(inicioDePartida,FinDePartida,gano,idjugador) VALUES ('" +
                     date.format(inicio) + "','" + date.format(fin) + "','" + ganador + "','" + dato + "')";
+
             miStatement.executeUpdate(instruccionSQLB);
-
-            miResultSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=24 and id_idioma = " + idioma + " ");
-
-            while (miResultSet.next()) {
-                System.out.println(miResultSet.getString("descripcion"));
-            }
-
-            //System.out.println("Se registro correctamente");
+            System.out.println(mensajexIdioma(idioma,24));
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
-
+    public String mensajexIdioma(int idIdioma, int idMensaje) {
+        // metodo que muestra un mensaje dependiendo del ididioma y el idmensaje
+        String mensaje = "";
+        try {
+            Connection miConexion = DriverManager.getConnection("jdbc:mysql://" + this.conexion, this.usuario, this.password);
+            Statement miStatement = miConexion.createStatement();
+            ResultSet miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje= " + idMensaje + " and  id_idioma =" + idIdioma + " ");
+            while (miResulSet.next()) {
+                mensaje = miResulSet.getString("descripcion");
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return mensaje;
+    }
 }
 	
 
