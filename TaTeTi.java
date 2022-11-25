@@ -2,6 +2,7 @@ import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class TaTeTi {
@@ -9,115 +10,132 @@ public class TaTeTi {
     private final char J1 = 'X';
     private final char J2 = '0';
     private char jugador = J1;
-    private conectaDB d = new conectaDB("localhost:3306/tateti", "root", "");
-    ResultSet miResulSet;
+    private final conectaDB d = new conectaDB("localhost:3306/tateti", "root", "admin1");
     Statement miStatement;
-    int idioma;
+    int idioma = 2; // idioma por defecto 2 (español) para mostrar la tabla de idiomas
     String nombreJ;
+    boolean seregistro; // boolean para que solo se pueda pedir 1 vez el nombre al usuario que corre el programa
+    static String nombreJugador;
+    boolean nosalir = true;
 
-    public TaTeTi(int idioma) {
-        this.idioma = idioma;
+    //Imprime la tabla de idiomas para que el usuario escojan en que idioma jugar
+    public void tabladeIdiomas() {
+        while (nosalir) {
+            System.out.println(d.mensajexIdioma(idioma, 33) + ": ");
+            System.out.println("1.Ingles\n2.Español\n3.Portugues");
+            Scanner dato = new Scanner(System.in);
+            //try catch para evitar la excepcion en caso de que el usuario ingrese una letra en lugar de un numero
+            try {
+                int miIdioma = dato.nextInt();
+                if (miIdioma > 0 && miIdioma < 4) {
+                    idioma = miIdioma;
+                    menu();
+
+                } else {
+                    System.out.println(d.mensajexIdioma(idioma, 14));
+                    System.out.println();
+                }
+            } catch (InputMismatchException e) {
+                System.out.println(d.mensajexIdioma(idioma, 14));
+                System.out.println();
+            }
+        }
     }
 
-
-    public void menuChico(){
-        try {
-            Connection miConexion = DriverManager.getConnection("jdbc:mysql://" + d.getConexion(), d.getUsuario(), d.getPassword());
-        miStatement = miConexion.createStatement();
-        miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where (id_Mensaje=8 OR id_Mensaje=9 OR id_Mensaje=10 OR id_Mensaje=28) and  id_idioma =" + idioma + " ");
-        int contador = 1;
-        System.out.println("  ");
-        while (miResulSet.next()) {
-            System.out.println(contador + "." + miResulSet.getString("descripcion"));
-            contador++;
-        }
-        } catch (Exception e) {
-           System.out.println(e);
-        }
-    }
-    public void menu(TaTeTi jugar) {
+    public void menu() {
+        int op;
         try {
             Connection miConexion = DriverManager.getConnection("jdbc:mysql://" + d.getConexion(), d.getUsuario(), d.getPassword());
             miStatement = miConexion.createStatement();
-            //pide nombre al jugador 
-            miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=2 and id_idioma = " + idioma + " ");
-            while(miResulSet.next()){
-                System.out.println(miResulSet.getString("descripcion"));
+
+            //se verifica que no se haya registrado el nombre del jugador
+            if (!seregistro) {
+                // ingresa el nombre del jugador
+                System.out.println(d.mensajexIdioma(idioma, 2));
+                Scanner n = new Scanner(System.in);
+                nombreJugador = n.nextLine();
+                nombreJ = nombreJugador;
+                //Se guarda el jugador en la base de datos al comienzo
+                String instruccionSQL = "INSERT INTO jugador(nombre) VALUES ('" + nombreJ + "')";
+                miStatement.executeUpdate(instruccionSQL);
             }
-            Scanner n = new Scanner(System.in);
-            String nombreJugador=n.nextLine();
-            nombreJ=nombreJugador;
-            //opciones: jugar, ver stas, salir
-            menuChico();
-           
+
             int gano;
             boolean condicion = true;
             while (condicion) {
+                // menu del juego
+                System.out.println("          " + d.mensajexIdioma(idioma, 1) + "          ");
+                System.out.println("1." + d.mensajexIdioma(idioma, 8));
+                System.out.println("2." + d.mensajexIdioma(idioma, 9));
+                System.out.println("3." + d.mensajexIdioma(idioma, 10));
+                System.out.println("4." + d.mensajexIdioma(idioma, 32));
+                System.out.println("5." + d.mensajexIdioma(idioma, 28));
                 Scanner l = new Scanner(System.in);
-                int op = l.nextInt();
-                if (op == 1) {
-                    Date inicio = new Date();
-                    DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    jugar.crearYllenarTablero();
-                    jugar.mostrarTablero();
-                    jugar.jugar();
+                try {
+                    op = l.nextInt();
+                    if (op == 1) {
+                        Date inicio = new Date();
+                        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        crearYllenarTablero();
+                        mostrarTablero();
+                        jugar();
 
-                    if (jugar.haGanado('X')) {
-                        gano = 1;
-                    } else if (jugar.haGanado('0')) {
-                        gano = 0;
+                        if (haGanado('X')) {
+                            gano = 1;
+                        } else if (haGanado('0')) {
+                            gano = 0;
+                        } else {
+                            gano = 2;
+                        }
+
+                        Date fin = new Date();
+
+                        d.GuardaPartida(format, inicio, fin, gano, nombreJugador, idioma);
+                    }
+                    if (op == 2) {
+                        d.imprimirEstadisticas(idioma, null);
+                    }
+                    if (op == 3) {
+                        d.imprimirEstadisticas(idioma, nombreJ);
+                    }
+                    if (op == 4) {
+
+                        seregistro = true;
+                        tabladeIdiomas();
+                    }
+                    if (op == 5) {
+                        nosalir = false;
+                        condicion = false;
+
                     } else {
-                        gano = 2;
+                        System.out.println(d.mensajexIdioma(idioma, 31));
+                        System.out.println();
                     }
-
-                    Date fin = new Date();
-
-                    d.GuardaPartida(format, inicio, fin, gano, nombreJugador,idioma);
-                }
-                if (op == 2) {
-                    d.imprimirEstadisticas(idioma,null);
-                }
-                if (op == 3) {
-                    d.imprimirEstadisticas(idioma,nombreJ);
-                } if(op==4){
-                    
-                    condicion = false;
-                } else {
-                    menuChico();
-                    //miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=14 and id_idioma = " + idioma + " ");
-                    while (miResulSet.next()) {
-                        System.out.println(miResulSet.getString("descripcion"));
-                    }
+                } catch (InputMismatchException e) {
+                    System.out.println(d.mensajexIdioma(idioma, 31));
+                    System.out.println();
                 }
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
+
     }
 
+
     public void mostrarTablero() {
-        try {
-            miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=12 and id_idioma = " + idioma + " ");
-            while (miResulSet.next()) {
-                System.out.println(miResulSet.getString("descripcion") + " : X");
-            }
-            miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=13 and id_idioma = " + idioma + " ");
-            while (miResulSet.next()) {
-                System.out.println(miResulSet.getString("descripcion") + " : 0");
-            }
+        System.out.println(d.mensajexIdioma(idioma, 12));
+        System.out.println(d.mensajexIdioma(idioma, 13));
 
-            for (int i = 0; i < tablero.length; i++) {
+        for (char[] chars : tablero) {
 
-                for (int j = 0; j < tablero.length; j++) {
-                    System.out.print("|" + tablero[i][j]);
+            for (int j = 0; j < tablero.length; j++) {
+                System.out.print("|" + chars[j]);
 
-                }
-                System.out.println("|");
             }
-            System.out.println(" ");
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            System.out.println("|");
         }
+        System.out.println(" ");
     }
 
     public char[][] crearYllenarTablero() {
@@ -131,118 +149,85 @@ public class TaTeTi {
     }
 
     public void jugar() {
-        try {
-            boolean gano = false;
-            while (!gano || !Empate()) {
-
-                jugador = J1;
-                miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=4 and id_idioma = " + idioma + " ");
-                while (miResulSet.next()) {
-                    System.out.println(miResulSet.getString("descripcion") + " : " + jugador);
-                }
-                System.out.println(" ");
-                movimientoJugador();
-                mostrarTablero();
-                if (haGanado(jugador) || Empate()) {
-                    gano = true;
-                    break;
-                }
-                jugador = J2;
-                miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=3 and id_idioma = " + idioma + " ");
-                while (miResulSet.next()) {
-                    System.out.println(miResulSet.getString("descripcion") + " : " + jugador);
-                }
-                System.out.println(" ");
-                movimientoComputadora();
-                mostrarTablero();
-                if (haGanado(jugador) || Empate()) {  
-                    gano = false;
-                    break;
-                }
-            }
-            if (haGanado(jugador)) {
-                mensaje(jugador);
+        boolean gano = false;
+        while (true) {
+            if (gano) {
+                Empate();
             }
 
-            if (!haGanado(jugador) && Empate()) {
-                miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=11 and id_idioma = " + idioma + " ");
-                while (miResulSet.next()) {
-                    System.out.println(miResulSet.getString("descripcion"));
-                }
+            jugador = J1;
+            System.out.println(d.mensajexIdioma(idioma, 4) + " : " + jugador);
+            System.out.println(" ");
+            movimientoJugador();
+            mostrarTablero();
+            if (haGanado(jugador) || Empate()) {
+                gano = true;
+                break;
             }
-            miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=7 and id_idioma = " + idioma + " ");
-            while (miResulSet.next()) {
-                System.out.println(miResulSet.getString("descripcion"));
+            jugador = J2;
+            System.out.println(d.mensajexIdioma(idioma, 3) + " : " + jugador);
+            System.out.println(" ");
+            movimientoComputadora();
+            mostrarTablero();
+            if (haGanado(jugador) || Empate()) {
+                gano = false;
+                break;
             }
-
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
         }
+        if (haGanado(jugador)) {
+            mensaje(jugador);
+        }
+
+        if (!haGanado(jugador) && Empate()) {
+            System.out.println(d.mensajexIdioma(idioma, 11));
+        }
+        System.out.println(d.mensajexIdioma(idioma, 7));
 
     }
 
     public void movimientoJugador() {
-        try {
-            Scanner movimiento = new Scanner(System.in);
-            int fila;
-            int columna;
-            boolean condicion = true;
-            while (condicion) {
-                miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=15 and id_idioma = " + idioma + " ");
-                while (miResulSet.next()) {
-                    System.out.println(miResulSet.getString("descripcion"));
-                }
-                columna = movimiento.nextInt();
-                if (columna <= 3 && columna > 0) {
-                    miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=16 and id_idioma = " + idioma + " ");
-                    while (miResulSet.next()) {
-                        System.out.println(miResulSet.getString("descripcion"));
+        Scanner movimiento = new Scanner(System.in);
+        int fila;
+        int columna;
+        boolean condicion = true;
+        while (condicion) {
+            System.out.println(d.mensajexIdioma(idioma, 15));
+            columna = movimiento.nextInt();
+            if (columna <= 3 && columna > 0) {
+                System.out.println(d.mensajexIdioma(idioma, 16));
+                fila = movimiento.nextInt();
+                if (fila <= 3 && fila > 0) {
+                    fila = fila - 1;
+                    columna = columna - 1;
+                    boolean vacio = false;
+                    for (int i = 0; i < tablero.length; i++) {
+                        for (int j = 0; j < tablero.length; j++) {
+                            if (tablero[i][j] == tablero[fila][columna]) {
+                                if (tablero[i][j] == '-') {
+                                    vacio = true;
+                                }
+                            }
+                        }
                     }
-                    fila = movimiento.nextInt();
-                    if (fila <= 3 && fila > 0) {
-                        fila = fila - 1;
-                        columna = columna - 1;
-                        boolean vacio = false;
+                    if (vacio) {
                         for (int i = 0; i < tablero.length; i++) {
                             for (int j = 0; j < tablero.length; j++) {
                                 if (tablero[i][j] == tablero[fila][columna]) {
-                                    if (tablero[i][j] == '-') {
-                                        vacio = true;
-                                    }
+                                    tablero[fila][columna] = J1;
                                 }
                             }
                         }
-                        if (vacio) {
-                            for (int i = 0; i < tablero.length; i++) {
-                                for (int j = 0; j < tablero.length; j++) {
-                                    if (tablero[i][j] == tablero[fila][columna]) {
-                                        tablero[fila][columna] = J1;
-                                    }
-                                }
-                            }
-                            condicion = false;
-                        } else {
-                            miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=17 and id_idioma = " + idioma + " ");
-                            while (miResulSet.next()) {
-                                System.out.println(miResulSet.getString("descripcion"));
-                            }
-                        }
-
+                        condicion = false;
                     } else {
-                        miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=14 and id_idioma = " + idioma + " ");
-                        while (miResulSet.next()) {
-                            System.out.println(miResulSet.getString("descripcion"));
-                        }
+                        System.out.println(d.mensajexIdioma(idioma, 17));
                     }
+
                 } else {
-                    miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=14 and id_idioma = " + idioma + " ");
-                    while (miResulSet.next()) {
-                        System.out.println(miResulSet.getString("descripcion"));
-                    }
+                    System.out.println(d.mensajexIdioma(idioma, 14));
                 }
+            } else {
+                System.out.println(d.mensajexIdioma(idioma, 14));
             }
-        } catch (SQLException throwables) {
-            System.out.println("Ha ocurrido un error");
         }
     }
 
@@ -276,23 +261,15 @@ public class TaTeTi {
     }
 
     public void mensaje(char jugador) {
-        try {
-            if (jugador == 'X') {
-                miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=6 and id_idioma =" + idioma + "");
-            } else {
-                miResulSet = miStatement.executeQuery("SELECT descripcion from mensajexidioma where id_Mensaje=5 and id_idioma =" + idioma + "");
-            }
-            while (miResulSet.next()) {
-                System.out.println(miResulSet.getString("descripcion"));
-            }
-
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        if (jugador == 'X') {
+            System.out.println(d.mensajexIdioma(idioma, 6));
+        } else {
+            System.out.println(d.mensajexIdioma(idioma, 5));
         }
     }
 
     public boolean haGanado(char jugador) {
-        // horizontales 
+        // horizontales
         if (tablero[0][0] == jugador && tablero[0][1] == jugador && tablero[0][2] == jugador) {
 
             return true;
@@ -316,15 +293,11 @@ public class TaTeTi {
             return true;
         }
 
-        //diagonales 
+        //diagonales
         else if (tablero[0][0] == jugador && tablero[1][1] == jugador && tablero[2][2] == jugador) {
 
             return true;
-        } else if (tablero[0][2] == jugador && tablero[1][1] == jugador && tablero[2][0] == jugador) {
-            return true;
-        } else {
-            return false;
-        }
+        } else return tablero[0][2] == jugador && tablero[1][1] == jugador && tablero[2][0] == jugador;
 
     }
 
