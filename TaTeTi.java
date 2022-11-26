@@ -11,12 +11,15 @@ public class TaTeTi {
     private final char J2 = '0';
     private char jugador = J1;
     private final conectaDB d = new conectaDB("localhost:3306/tateti", "root", "admin1");
-    Statement miStatement;
-    int idioma = 2; // idioma por defecto 2 (español) para mostrar la tabla de idiomas
-    String nombreJ;
-    boolean seregistro; // boolean para que solo se pueda pedir 1 vez el nombre al usuario que corre el programa
-    static String nombreJugador;
-    boolean nosalir = true;
+    private Statement miStatement;
+    private int idioma = 2; // idioma por defecto 2 (español) para mostrar la tabla de idiomas
+    private String nombreJ;
+    private boolean seregistro; // boolean para que solo se pueda pedir 1 vez el nombre al usuario que corre el programa
+    private static String nombreJugador;
+    private boolean nosalir = true;
+    private static boolean ganoJugador;
+    private static boolean empate = false;
+    private static boolean notermino=true;
 
     //Imprime la tabla de idiomas para que el usuario escojan en que idioma jugar
     public void tabladeIdiomas() {
@@ -78,11 +81,19 @@ public class TaTeTi {
                         DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         crearYllenarTablero();
                         mostrarTablero();
-                        jugar();
+                        // condicion para que no termine el juego hasta que gane 1 con un try chatch por si el jugador ingresa un caracter que no sea numero
+                        while (notermino) {
+                            try {
+                               notermino= jugar(notermino);
+                            }catch (Exception e ) {
+                                System.out.println(d.mensajexIdioma(idioma, 14));
+                            }
+                        }
+                        notermino=true;
 
-                        if (haGanado('X')) {
+                        if (ganoJugador && !empate) {
                             gano = 1;
-                        } else if (haGanado('0')) {
+                        } else if (!ganoJugador && !empate) {
                             gano = 0;
                         } else {
                             gano = 2;
@@ -91,25 +102,20 @@ public class TaTeTi {
                         Date fin = new Date();
 
                         d.GuardaPartida(format, inicio, fin, gano, nombreJugador, idioma);
-                    }
-                    if (op == 2) {
+                    }else if (op == 2) {
                         d.imprimirEstadisticas(idioma, null);
-                    }
-                    if (op == 3) {
+                    } else if (op == 3) {
                         d.imprimirEstadisticas(idioma, nombreJ);
-                    }
-                    if (op == 4) {
+                    } else if (op == 4) {
 
                         seregistro = true;
                         tabladeIdiomas();
-                    }
-                    if (op == 5) {
+                    } else if (op == 5) {
                         nosalir = false;
                         condicion = false;
 
                     } else {
-                        System.out.println(d.mensajexIdioma(idioma, 31));
-                        System.out.println();
+                        System.out.println(d.mensajexIdioma(idioma,31));
                     }
                 } catch (InputMismatchException e) {
                     System.out.println(d.mensajexIdioma(idioma, 31));
@@ -124,8 +130,10 @@ public class TaTeTi {
 
 
     public void mostrarTablero() {
-        System.out.println(d.mensajexIdioma(idioma, 12));
-        System.out.println(d.mensajexIdioma(idioma, 13));
+
+        System.out.println(d.mensajexIdioma(idioma, 12)+ ": " + J1);
+        System.out.println(d.mensajexIdioma(idioma, 13)+ ": " + J2);
+        System.out.println();
 
         for (char[] chars : tablero) {
 
@@ -148,41 +156,39 @@ public class TaTeTi {
         return tablero;
     }
 
-    public void jugar() {
-        boolean gano = false;
-        while (true) {
-            if (gano) {
-                Empate();
-            }
+    public boolean jugar(boolean notermino) {
+        boolean continuarPartida = true;
+        while (continuarPartida) {
+            if (chequeodeEmpate()) {
+                continuarPartida = false;
+                empate = true;
+                notermino=false;
+            } else {
 
-            jugador = J1;
-            System.out.println(d.mensajexIdioma(idioma, 4) + " : " + jugador);
-            System.out.println(" ");
-            movimientoJugador();
-            mostrarTablero();
-            if (haGanado(jugador) || Empate()) {
-                gano = true;
-                break;
+                System.out.println(d.mensajexIdioma(idioma, 4) + " : " + J1);
+                movimientoJugador();
+                mostrarTablero();
+                System.out.println();
+                if (chequeodeEmpate()) {
+                    continuarPartida = false;
+                    empate = true;
+                    notermino=false;
+                } else {
+                    movimientoComputadora();
+                    if (continuarPartida = ganador()) {
+                        System.out.println(d.mensajexIdioma(idioma, 3) + " : " + J2);
+                    }
+                }
             }
-            jugador = J2;
-            System.out.println(d.mensajexIdioma(idioma, 3) + " : " + jugador);
-            System.out.println(" ");
-            movimientoComputadora();
-            mostrarTablero();
-            if (haGanado(jugador) || Empate()) {
-                gano = false;
-                break;
+            if (!(ganador())) {
+                anuncioDeGanador(ganoJugador);
+                notermino=false;
+            } else if (empate){
+                notermino=false;
+                System.out.println(d.mensajexIdioma(idioma, 11));
             }
         }
-        if (haGanado(jugador)) {
-            mensaje(jugador);
-        }
-
-        if (!haGanado(jugador) && Empate()) {
-            System.out.println(d.mensajexIdioma(idioma, 11));
-        }
-        System.out.println(d.mensajexIdioma(idioma, 7));
-
+        return notermino;
     }
 
     public void movimientoJugador() {
@@ -220,13 +226,16 @@ public class TaTeTi {
                         condicion = false;
                     } else {
                         System.out.println(d.mensajexIdioma(idioma, 17));
+                        System.out.println();
                     }
 
                 } else {
                     System.out.println(d.mensajexIdioma(idioma, 14));
+                    System.out.println();
                 }
             } else {
                 System.out.println(d.mensajexIdioma(idioma, 14));
+                System.out.println();
             }
         }
     }
@@ -260,48 +269,91 @@ public class TaTeTi {
         }
     }
 
-    public void mensaje(char jugador) {
-        if (jugador == 'X') {
+    public void anuncioDeGanador(boolean ganoJugador) {
+        if (ganoJugador) {
             System.out.println(d.mensajexIdioma(idioma, 6));
         } else {
             System.out.println(d.mensajexIdioma(idioma, 5));
         }
     }
 
-    public boolean haGanado(char jugador) {
-        // horizontales
-        if (tablero[0][0] == jugador && tablero[0][1] == jugador && tablero[0][2] == jugador) {
+    public boolean ganador() {
+        boolean ganador;
 
-            return true;
-        } else if (tablero[1][0] == jugador && tablero[1][1] == jugador && tablero[1][2] == jugador) {
+        if (tablero[0][0] == J1 && tablero[0][1] == J1 && tablero[0][2] == J1) {
+            ganador = false;
+            ganoJugador = true;
 
-            return true;
-        } else if (tablero[2][0] == jugador && tablero[2][1] == jugador && tablero[2][2] == jugador) {
+        } else if (tablero[1][0] == J1 && tablero[1][1] == J1 && tablero[1][2] == J1) {
+            ganador = false;
+            ganoJugador = true;
 
-            return true;
+        } else if (tablero[2][0] == J1 && tablero[2][1] == J1 && tablero[2][2] == J1) {
+            ganador = false;
+            ganoJugador = true;
+
+        } else if (tablero[0][0] == J1 && tablero[1][0] == J1 && tablero[2][0] == J1) {
+            ganador = false;
+            ganoJugador = true;
+
+        } else if (tablero[0][1] == J1 && tablero[1][1] == J1 && tablero[2][1] == J1) {
+            ganador = false;
+            ganoJugador = true;
+
+        } else if (tablero[0][2] == J1 && tablero[1][2] == J1 && tablero[2][2] == J1) {
+            ganador = false;
+            ganoJugador = true;
+
+        } else if (tablero[0][0] == J1 && tablero[1][1] == J1 && tablero[2][2] == J1) {
+            ganador = false;
+            ganoJugador = true;
+
+        } else if (tablero[2][0] == J1 && tablero[1][1] == J1 && tablero[0][2] == J1) {
+            ganador = false;
+            ganoJugador = true;
+
+        } else if (tablero[0][0] == J2 && tablero[0][1] == J2 && tablero[0][2] == J2) {
+            ganador = false;
+            ganoJugador = false;
+
+        } else if (tablero[1][0] == J2 && tablero[1][1] == J2 && tablero[1][2] == J2) {
+            ganador = false;
+            ganoJugador = false;
+
+        } else if (tablero[2][0] == J2 && tablero[2][1] == J2 && tablero[2][2] == J2) {
+            ganador = false;
+            ganoJugador = false;
+
+        } else if (tablero[0][0] == J2 && tablero[1][0] == J2 && tablero[2][0] == J2) {
+            ganador = false;
+            ganoJugador = false;
+
+        } else if (tablero[0][1] == J2 && tablero[1][1] == J2 && tablero[2][1] == J2) {
+            ganador = false;
+            ganoJugador = false;
+
+        } else if (tablero[0][2] == J2 && tablero[1][2] == J2 && tablero[2][2] == J2) {
+            ganador = false;
+            ganoJugador = false;
+
+        } else if (tablero[0][0] == J2 && tablero[1][1] == J2 && tablero[2][2] == J2) {
+            ganador = false;
+            ganoJugador = false;
+
+        } else {
+            if (tablero[2][0] == J2 && tablero[1][1] == J2 && tablero[0][2] == J2) {
+                ganador = false;
+
+            } else {
+                ganador = true;
+            }
+            ganoJugador = false;
         }
 
-        //verticales
-        else if (tablero[0][0] == jugador && tablero[1][0] == jugador && tablero[2][0] == jugador) {
-
-            return true;
-        } else if (tablero[0][1] == jugador && tablero[1][1] == jugador && tablero[2][1] == jugador) {
-
-            return true;
-        } else if (tablero[0][2] == jugador && tablero[1][2] == jugador && tablero[2][2] == jugador) {
-
-            return true;
-        }
-
-        //diagonales
-        else if (tablero[0][0] == jugador && tablero[1][1] == jugador && tablero[2][2] == jugador) {
-
-            return true;
-        } else return tablero[0][2] == jugador && tablero[1][1] == jugador && tablero[2][0] == jugador;
-
+        return ganador;
     }
 
-    public boolean Empate() {
+    public boolean chequeodeEmpate() {
         int contador = 0;
         for (int i = 0; i < tablero.length; i++) {
             for (int j = 0; j < tablero.length; j++) {
