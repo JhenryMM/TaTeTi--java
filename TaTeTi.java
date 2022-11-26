@@ -17,9 +17,9 @@ public class TaTeTi {
     private boolean seregistro; // boolean para que solo se pueda pedir 1 vez el nombre al usuario que corre el programa
     private static String nombreJugador;
     private boolean nosalir = true;
-    private static boolean ganoJugador;
+    private static boolean ganoJugador; // si es true gano el jugador, si es false gano la computadora
     private static boolean empate = false;
-    private static boolean notermino=true;
+    private static boolean notermino = true; // no termino quiere decir q la partida no termino asi q seguira pidiendo los movimientos al jugador
 
     //Imprime la tabla de idiomas para que el usuario escojan en que idioma jugar
     public void tabladeIdiomas() {
@@ -82,14 +82,15 @@ public class TaTeTi {
                         crearYllenarTablero();
                         mostrarTablero();
                         // condicion para que no termine el juego hasta que gane 1 con un try chatch por si el jugador ingresa un caracter que no sea numero
+                        // en caso que si ingrese un caracter el juego reinicia la peticion de ingresar la colum y fila, no importa si esta en la fila
                         while (notermino) {
                             try {
-                               notermino= jugar(notermino);
-                            }catch (Exception e ) {
+                                notermino = jugar(notermino);
+                            } catch (Exception e) {
                                 System.out.println(d.mensajexIdioma(idioma, 14));
                             }
                         }
-                        notermino=true;
+                        notermino = true;
 
                         if (ganoJugador && !empate) {
                             gano = 1;
@@ -102,7 +103,7 @@ public class TaTeTi {
                         Date fin = new Date();
 
                         d.GuardaPartida(format, inicio, fin, gano, nombreJugador, idioma);
-                    }else if (op == 2) {
+                    } else if (op == 2) {
                         d.imprimirEstadisticas(idioma, null);
                     } else if (op == 3) {
                         d.imprimirEstadisticas(idioma, nombreJ);
@@ -115,7 +116,7 @@ public class TaTeTi {
                         condicion = false;
 
                     } else {
-                        System.out.println(d.mensajexIdioma(idioma,31));
+                        System.out.println(d.mensajexIdioma(idioma, 31));
                     }
                 } catch (InputMismatchException e) {
                     System.out.println(d.mensajexIdioma(idioma, 31));
@@ -131,8 +132,8 @@ public class TaTeTi {
 
     public void mostrarTablero() {
 
-        System.out.println(d.mensajexIdioma(idioma, 12)+ ": " + J1);
-        System.out.println(d.mensajexIdioma(idioma, 13)+ ": " + J2);
+        System.out.println(d.mensajexIdioma(idioma, 12) + ": " + J1);
+        System.out.println(d.mensajexIdioma(idioma, 13) + ": " + J2);
         System.out.println();
 
         for (char[] chars : tablero) {
@@ -162,7 +163,7 @@ public class TaTeTi {
             if (chequeodeEmpate()) {
                 continuarPartida = false;
                 empate = true;
-                notermino=false;
+                notermino = false;
             } else {
 
                 System.out.println(d.mensajexIdioma(idioma, 4) + " : " + J1);
@@ -172,7 +173,7 @@ public class TaTeTi {
                 if (chequeodeEmpate()) {
                     continuarPartida = false;
                     empate = true;
-                    notermino=false;
+                    notermino = false;
                 } else {
                     movimientoComputadora();
                     if (continuarPartida = ganador()) {
@@ -182,9 +183,9 @@ public class TaTeTi {
             }
             if (!(ganador())) {
                 anuncioDeGanador(ganoJugador);
-                notermino=false;
-            } else if (empate){
-                notermino=false;
+                notermino = false;
+            } else if (empate) {
+                notermino = false;
                 System.out.println(d.mensajexIdioma(idioma, 11));
             }
         }
