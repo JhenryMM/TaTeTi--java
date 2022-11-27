@@ -80,7 +80,7 @@ public class TaTeTi {
                         Date inicio = new Date();
                         DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         crearYllenarTablero();
-                        mostrarTablero();
+
                         // condicion para que no termine el juego hasta que gane 1 con un try chatch por si el jugador ingresa un caracter que no sea numero
                         // en caso que si ingrese un caracter el juego reinicia la peticion de ingresar la colum y fila, no importa si esta en la fila
                         while (notermino) {
@@ -106,9 +106,11 @@ public class TaTeTi {
                     } else if (op == 2) {
                         d.imprimirEstadisticas(idioma, null);
                     } else if (op == 3) {
-                        d.imprimirEstadisticas(idioma, nombreJ);
+                        l.nextLine();
+                        System.out.println(d.mensajexIdioma(idioma, 2));
+                        String nombredeljugador = l.nextLine();
+                        d.imprimirEstadisticas(idioma, nombredeljugador);
                     } else if (op == 4) {
-
                         seregistro = true;
                         tabladeIdiomas();
                     } else if (op == 5) {
@@ -117,6 +119,7 @@ public class TaTeTi {
 
                     } else {
                         System.out.println(d.mensajexIdioma(idioma, 31));
+                        System.out.println();
                     }
                 } catch (InputMismatchException e) {
                     System.out.println(d.mensajexIdioma(idioma, 31));
@@ -165,7 +168,7 @@ public class TaTeTi {
                 empate = true;
                 notermino = false;
             } else {
-
+                mostrarTablero();
                 System.out.println(d.mensajexIdioma(idioma, 4) + " : " + J1);
                 movimientoJugador();
                 mostrarTablero();

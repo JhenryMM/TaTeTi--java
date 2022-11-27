@@ -84,29 +84,42 @@ public class conectaDB {
 
             } else {
                 //mensaje estadisticas
-                System.out.println(mensajexIdioma(idioma, 18));
 
                 Connection miCon = DriverManager.getConnection("jdbc:mysql://" + this.conexion, this.usuario, this.password);
                 Statement miState = miCon.createStatement();
                 miState.getConnection();
-                miResultSet = miState.executeQuery("SELECT * FROM registrodepartida rp INNER JOIN jugador j ON rp.idjugador = j.idjugador WHERE j.nombre = '"+ name + "' ");
-
-                while (miResultSet.next()) {
-
-                    if (miResultSet.getInt("gano") == 1) {
-                        //gano
-                        resultado = mensajexIdioma(idioma, 25);
-
-                    } else if (miResultSet.getInt("gano") == 0) {
-                        //perdio
-                        resultado = mensajexIdioma(idioma, 26);
-
-                    } else {
-                        //empate
-                        resultado = mensajexIdioma(idioma, 27);
+                boolean existe=false;
+                miResultSet = miState.executeQuery("SELECT nombre FROM jugador WHERE nombre= '"+ name +"'");
+                while (miResultSet.next()){
+                    if(name.equals(miResultSet.getString("nombre"))){
+                        existe=true;
                     }
-                    System.out.println(inicio + " " + miResultSet.getString("inicioDePartida") + " " + fin + " " + miResultSet.getString("FinDePartida") + " " + miResultSet.getString("nombre") + " " + resultado + " " + contra);
                 }
+                if(existe){
+                    System.out.println(mensajexIdioma(idioma, 18) + ": " + name + "\n");
+                    miResultSet = miState.executeQuery("SELECT * FROM registrodepartida rp INNER JOIN jugador j ON rp.idjugador = j.idjugador WHERE j.nombre = '"+ name + "' ");
+
+                    while (miResultSet.next()) {
+
+                        if (miResultSet.getInt("gano") == 1) {
+                            //gano
+                            resultado = mensajexIdioma(idioma, 25);
+
+                        } else if (miResultSet.getInt("gano") == 0) {
+                            //perdio
+                            resultado = mensajexIdioma(idioma, 26);
+
+                        } else {
+                            //empate
+                            resultado = mensajexIdioma(idioma, 27);
+                        }
+                        System.out.println(inicio + " " + miResultSet.getString("inicioDePartida") + " " + fin + " " + miResultSet.getString("FinDePartida") + " " + miResultSet.getString("nombre") + " " + resultado + " " + contra);
+                    }
+                } else {
+                    System.out.println(mensajexIdioma(idioma, 34) + ": " + name + "\n");
+                }
+
+                System.out.println("\n");
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
